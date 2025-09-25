@@ -3,8 +3,13 @@ FROM node:20-alpine AS base
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+COPY package*.json ./
+# Use npm ci when lockfile exists; otherwise fallback to npm install
+RUN if [ -f package-lock.json ]; then \
+      npm ci --omit=dev; \
+    else \
+      npm install --omit=dev; \
+    fi
 
 # Build stage (not strictly needed for pure Node, but keeps pattern consistent)
 FROM base AS build
