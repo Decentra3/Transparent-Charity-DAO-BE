@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 
-export const createUser = async ({ wallet_address, email }) => {
+export const createUser = async ({ wallet_address }) => {
   const normalized = wallet_address.toLowerCase();
 
   // Nếu user đã tồn tại, trả về luôn
@@ -21,7 +21,7 @@ export const createUser = async ({ wallet_address, email }) => {
 
   const user = await User.create({
     wallet_address: normalized,
-    email,
+    email: "", // email mặc định rỗng
     username,
     status: "active",
     isKYC: false,
@@ -33,7 +33,6 @@ export const createUser = async ({ wallet_address, email }) => {
 export const getUserByWallet = (wallet) =>
   User.findOne({ wallet_address: wallet.toLowerCase() });
 
-// Chỉ cập nhật email và username
 export const editUser = async (id, updates) => {
   const allowedFields = {};
 
@@ -51,10 +50,15 @@ export const editUser = async (id, updates) => {
 export const setKYC = (id) =>
   User.findByIdAndUpdate(id, { isKYC: true }, { new: true });
 
-export const setStatus = async (id, status) => {
-  const allowedStatus = ["active", "block"];
-  if (!allowedStatus.includes(status)) {
-    throw new Error("Status must be 'active' or 'block'");
+export const setStatus = async (id) => {
+  // Lấy user hiện tại
+  const user = await User.findById(id);
+  if (!user) {
+    throw new Error("User not found");
   }
-  return User.findByIdAndUpdate(id, { status }, { new: true });
+
+  // Toggle trạng thái
+  const newStatus = user.status === "active" ? "block" : "active";
+
+  return User.findByIdAndUpdate(id, { status: newStatus }, { new: true });
 };

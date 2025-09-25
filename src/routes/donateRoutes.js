@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  getAllDonates,
   getDonatesByDonor,
   getDonatesByProject,
 } from "../controllers/donateController.js";
@@ -11,6 +12,43 @@ const router = express.Router();
  * tags:
  *   name: Donates
  *   description: API cho các thao tác liên quan đến donate
+ */
+
+/**
+ * @swagger
+ * /donates:
+ *   get:
+ *     summary: Lấy tất cả donate
+ *     tags: [Donates]
+ *     responses:
+ *       200:
+ *         description: Danh sách tất cả donate thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     example: "64f5e2abc123..."
+ *                   donor_wallet:
+ *                     type: string
+ *                     example: "0x123abc"
+ *                   project_id:
+ *                     type: string
+ *                     example: "64f5e2abc456..."
+ *                   amount:
+ *                     type: string
+ *                     example: "1000000000000000000"
+ *                   tx_hash:
+ *                     type: string
+ *                     example: "0xabc123..."
+ *                   timestamp:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2025-09-24T15:00:00.000Z"
  */
 
 /**
@@ -34,27 +72,7 @@ const router = express.Router();
  *             schema:
  *               type: array
  *               items:
- *                 type: object
- *                 properties:
- *                   _id:
- *                     type: string
- *                     example: "64f5e2abc123..."
- *                   donor_wallet:
- *                     type: string
- *                     example: "0x123abc"
- *                   project_id:
- *                     type: string
- *                     example: "64f5e2abc456..."
- *                   amount:
- *                     type: string
- *                     example: "1000000000000000000"
- *                   tx_hash:
- *                     type: string
- *                     example: "0xabc123..."
- *                   timestamp:
- *                     type: string
- *                     format: date-time
- *                     example: "2025-09-24T15:00:00.000Z"
+ *                 $ref: '#/components/schemas/Donate'
  */
 
 /**
@@ -78,28 +96,39 @@ const router = express.Router();
  *             schema:
  *               type: array
  *               items:
- *                 type: object
- *                 properties:
- *                   _id:
- *                     type: string
- *                     example: "64f5e2abc123..."
- *                   donor_wallet:
- *                     type: string
- *                     example: "0x123abc"
- *                   project_id:
- *                     type: string
- *                     example: "64f5e2abc456..."
- *                   amount:
- *                     type: string
- *                     example: "1000000000000000000"
- *                   tx_hash:
- *                     type: string
- *                     example: "0xabc123..."
- *                   timestamp:
- *                     type: string
- *                     format: date-time
- *                     example: "2025-09-24T15:00:00.000Z"
+ *                 $ref: '#/components/schemas/Donate'
  */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Donate:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: "64f5e2abc123..."
+ *         donor_wallet:
+ *           type: string
+ *           example: "0x123abc"
+ *         project_id:
+ *           type: string
+ *           example: "64f5e2abc456..."
+ *         amount:
+ *           type: string
+ *           example: "1000000000000000000"
+ *         tx_hash:
+ *           type: string
+ *           example: "0xabc123..."
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-09-24T15:00:00.000Z"
+ */
+
+// API lấy tất cả donate
+router.get("/", getAllDonates);
 
 // API riêng cho donor_wallet
 router.get("/donor/:donor_wallet", getDonatesByDonor);

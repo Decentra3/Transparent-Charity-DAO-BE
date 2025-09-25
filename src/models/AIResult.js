@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const aiResultSchema = new mongoose.Schema(
   {
     project_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "Project",
       required: true,
     },
@@ -19,7 +19,10 @@ const aiResultSchema = new mongoose.Schema(
       type: [String],
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 
 export default mongoose.model("AIResult", aiResultSchema);

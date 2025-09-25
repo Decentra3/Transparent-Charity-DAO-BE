@@ -1,33 +1,40 @@
 import Transaction from "../models/Transaction.js";
 
-/**
- * Upsert transaction vào DB và trả về document thực tế
- * @param {Object} txDoc
- * @returns {Promise<Object>} Transaction document
- */
 export const upsertTransaction = async (txDoc) => {
+  // chuẩn hoá trước khi insert
+  if (txDoc.from_address) {
+    txDoc.from_address = txDoc.from_address.toString().toLowerCase();
+  }
+
   return Transaction.findOneAndUpdate(
-    { tx_hash: txDoc.tx_hash }, // điều kiện: trùng hash thì không insert
-    { $setOnInsert: txDoc }, // chỉ set dữ liệu khi insert mới
-    { upsert: true, new: true } // upsert và trả về document mới
+    { tx_hash: txDoc.tx_hash }, // điều kiện: trùng hash thì update
+    { $setOnInsert: txDoc }, // chỉ set khi insert mới
+    { upsert: true, new: true } // upsert + trả về document mới
   );
 };
 
-/**
- * Lấy giao dịch theo địa chỉ from_address
- */
-export const getByFrom = async (from_address) => {
-  return Transaction.find({ from_address: from_address.toLowerCase() }).sort({
-    timestamp: -1,
-  });
+// GET /api/transactions/address/:from_address
+export const getTransactionsByAddress = async (req, res) => {
+  try {
+    const { from_address } = req.params;
+    const txs = await transactionService.getByFrom(from_address.toLowerCase());
+    return res.json({
+      success: true,
+      count: txs.length,
+      data: txs,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
 };
 
-/**
- * Lấy giao dịch giới hạn
- */
 export const getTransactions = async (limit) => {
-  if (limit && Number(limit) === 10) {
-    return Transaction.find().sort({ timestamp: -1 }).limit(10);
+  const query = Transaction.find().sort({ timestamp: -1 });
+  if (limit) {
+    return query.limit(Number(limit));
   }
-  return Transaction.find().sort({ timestamp: -1 });
+  return query;
 };

@@ -6,7 +6,6 @@ import {
   setKYCController,
   setStatusController,
 } from "../controllers/userController.js";
-import { validateEmail } from "../middlewares/validateEmail.js";
 
 const router = Router();
 
@@ -35,35 +34,9 @@ const router = Router();
  *               wallet_address:
  *                 type: string
  *                 example: "0x123abc..."
- *               email:
- *                 type: string
- *                 example: "user@example.com"
  *     responses:
  *       201:
  *         description: Tài khoản được tạo thành công
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                   example: "64fae1bc1234567890abcd"
- *                 wallet_address:
- *                   type: string
- *                   example: "0x123abc..."
- *                 email:
- *                   type: string
- *                   example: "user@example.com"
- *                 username:
- *                   type: string
- *                   example: "username_tcd_1"
- *                 status:
- *                   type: string
- *                   example: "active"
- *                 isKYC:
- *                   type: boolean
- *                   example: false
  */
 
 /**
@@ -82,29 +55,6 @@ const router = Router();
  *     responses:
  *       200:
  *         description: Thông tin người dùng
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                   example: "64fae1bc1234567890abcd"
- *                 wallet_address:
- *                   type: string
- *                   example: "0x123abc..."
- *                 email:
- *                   type: string
- *                   example: "user@example.com"
- *                 username:
- *                   type: string
- *                   example: "username_tcd_1"
- *                 status:
- *                   type: string
- *                   example: "active"
- *                 isKYC:
- *                   type: boolean
- *                   example: false
  */
 
 /**
@@ -127,32 +77,12 @@ const router = Router();
  *           schema:
  *             type: object
  *             properties:
- *               email:
- *                 type: string
- *                 example: "new_email@example.com"
  *               username:
  *                 type: string
  *                 example: "new_username"
  *     responses:
  *       200:
  *         description: Thông tin người dùng được cập nhật
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 wallet_address:
- *                   type: string
- *                 email:
- *                   type: string
- *                 username:
- *                   type: string
- *                 status:
- *                   type: string
- *                 isKYC:
- *                   type: boolean
  */
 
 /**
@@ -167,7 +97,6 @@ const router = Router();
  *         required: true
  *         schema:
  *           type: string
- *         description: ID của người dùng
  *     requestBody:
  *       required: true
  *       content:
@@ -181,30 +110,13 @@ const router = Router();
  *     responses:
  *       200:
  *         description: KYC được cập nhật
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 wallet_address:
- *                   type: string
- *                 email:
- *                   type: string
- *                 username:
- *                   type: string
- *                 status:
- *                   type: string
- *                 isKYC:
- *                   type: boolean
  */
 
 /**
  * @swagger
  * /users/{id}/status:
  *   patch:
- *     summary: Cập nhật trạng thái block/active của người dùng
+ *     summary: Toggle trạng thái người dùng (active ↔ block)
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -213,42 +125,14 @@ const router = Router();
  *         schema:
  *           type: string
  *         description: ID của người dùng
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               status:
- *                 type: string
- *                 enum: [active, blocked]
- *                 example: "active"
  *     responses:
  *       200:
  *         description: Trạng thái người dùng được cập nhật
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 wallet_address:
- *                   type: string
- *                 email:
- *                   type: string
- *                 username:
- *                   type: string
- *                 status:
- *                   type: string
- *                 isKYC:
- *                   type: boolean
  */
 
 router.post("/", createUserController);
 router.get("/:wallet", getUserByWalletController);
-router.put("/:id", validateEmail, editUserController);
+router.put("/:id", editUserController);
 router.patch("/:id/kyc", setKYCController);
 router.patch("/:id/status", setStatusController);
 

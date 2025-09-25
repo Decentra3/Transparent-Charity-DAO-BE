@@ -46,9 +46,9 @@ export async function analyzeFundraisingProposal(
 
     if (!resultText) {
       return await AiResult.findOneAndUpdate(
-        { project_id },
+        { project_id: project_id.toLowerCase() },
         {
-          project_id,
+          project_id: project_id.toLowerCase(),
           recommendation: "rejected",
           fraud_score: 0,
           key_reasons: ["Gemini returned empty or unexpected response"],
@@ -82,9 +82,9 @@ export async function analyzeFundraisingProposal(
 
     // Lưu DB
     const saved = await AiResult.findOneAndUpdate(
-      { project_id },
+      { project_id: project_id.toLowerCase() },
       {
-        project_id,
+        project_id: project_id.toLowerCase(),
         recommendation: parsed.recommendation,
         fraud_score: parsed.fraud_score,
         key_reasons: parsed.key_reasons,
@@ -106,9 +106,9 @@ export async function analyzeFundraisingProposal(
 export async function getAiResultByProjectId(project_id) {
   if (!project_id) throw new Error("project_id is required");
 
-  const result = await AiResult.findOne({ project_id }).select(
-    "_id project_id recommendation fraud_score key_reasons payload"
-  );
+  const result = await AiResult.findOne({
+    project_id: project_id.toLowerCase(),
+  }).select("_id project_id recommendation fraud_score key_reasons payload");
 
   return result;
 }

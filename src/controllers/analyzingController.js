@@ -4,17 +4,29 @@ import {
   getAiResultByProjectId,
 } from "../services/geminiService.js";
 
+/**
+ * POST /analyze/proposal
+ * Phân tích proposal gây quỹ bằng AI
+ */
 export async function analyzeProposal(req, res, next) {
   try {
     const { project_id, text, imageBase64 } = req.body;
 
+    // Validate input
+    if (!project_id || !text) {
+      return res.status(400).json({
+        success: false,
+        message: "project_id and text are required",
+      });
+    }
+
     const result = await analyzeFundraisingProposal(
-      project_id,
-      text,
-      imageBase64
+      project_id.toString().trim(),
+      text.trim(),
+      imageBase64 ?? null
     );
 
-    res.json({
+    return res.json({
       success: true,
       data: result,
     });
@@ -23,20 +35,35 @@ export async function analyzeProposal(req, res, next) {
   }
 }
 
-// GET /analyze/result/:project_id
+/**
+ * GET /analyze/result/:project_id
+ * Lấy kết quả AI theo project_id
+ */
 export const getAiResult = async (req, res, next) => {
   try {
     const { project_id } = req.params;
+
+    // Validate input
     if (!project_id) {
-      return res.status(400).json({ message: "project_id is required" });
+      return res.status(400).json({
+        success: false,
+        message: "project_id is required",
+      });
     }
 
-    const result = await aiService.getAiResultByProjectId(project_id);
+    const result = await getAiResultByProjectId(project_id.toString().trim());
+
     if (!result) {
-      return res.status(404).json({ message: "AI result not found" });
+      return res.status(404).json({
+        success: false,
+        message: "AI result not found",
+      });
     }
 
-    return res.json(result);
+    return res.json({
+      success: true,
+      data: result,
+    });
   } catch (err) {
     next(err);
   }

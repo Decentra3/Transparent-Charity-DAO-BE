@@ -37,12 +37,15 @@ export function subscribeEvents(contract, io) {
               ? Number(decoded.args.projectId.toString())
               : null;
           }
-        } catch {}
+          console.log("projectId:", projectId);
+        } catch {
+          logger.error("Error parsing DonationReceived event:", err);
+        }
 
         return {
           donor,
           amount: amount.toString(),
-          projectId,
+          projectId: null,
           txHash: tx.hash,
           eventType: "donate",
           groupEvent: "donationReceived",
@@ -245,16 +248,28 @@ export function subscribeEvents(contract, io) {
       const rawEvent = args[args.length - 1];
       try {
         const data = await handler(...args);
+
         await handleAndEmit(io, data.groupEvent, data);
 
         // Nếu event donate, lưu riêng vào collection Donate
+
+        logger.info("--------------------------------");
+        logger.info(`projectId: ${data.projectId}`);
+        logger.info(`donor: ${data.donor}`);
+        logger.info(`amount: ${data.amount}`);
+        logger.info(`txHash: ${data.txHash}`);
+        logger.info(`eventType: ${data.eventType}`);
+        logger.info(`groupEvent: ${data.groupEvent}`);
+        logger.info(`from_address: ${data.from_address}`);
+        logger.info(`to_address: ${data.to_address}`);
+        logger.info("--------------------------------");
         if (isDonate) {
           await createDonate({
             from_address: data.from_address,
             projectId: data.projectId,
             amount: data.amount,
             txHash: data.txHash,
-            donateType: "direct", // hoặc lấy từ data nếu có
+            donateType: data.projectId !== null ? "project" : "direct",
           });
         }
       } catch (err) {
