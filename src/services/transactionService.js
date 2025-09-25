@@ -14,21 +14,13 @@ export const upsertTransaction = async (txDoc) => {
 };
 
 // GET /api/transactions/address/:from_address
-export const getTransactionsByAddress = async (req, res) => {
-  try {
-    const { from_address } = req.params;
-    const txs = await transactionService.getByFrom(from_address.toLowerCase());
-    return res.json({
-      success: true,
-      count: txs.length,
-      data: txs,
-    });
-  } catch (err) {
-    return res.status(500).json({
-      success: false,
-      error: err.message,
-    });
-  }
+
+export const getTransactionsWithAddress = async (fromAddress) => {
+  if (!fromAddress) throw new Error("fromAddress is required");
+
+  // Nếu Transaction.find lỗi (ví dụ DB không kết nối), lỗi sẽ tự throw ra
+  const txs = await Transaction.find({ from_address: fromAddress }).lean();
+  return txs;
 };
 
 export const getTransactions = async (limit) => {

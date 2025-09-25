@@ -16,7 +16,7 @@ export const getTransactionsByAddress = async (req, res, next) => {
       });
     }
 
-    const txs = await transactionService.getByFrom(
+    const txs = await transactionService.getTransactionsWithAddress(
       from_address.toLowerCase().trim()
     );
 
