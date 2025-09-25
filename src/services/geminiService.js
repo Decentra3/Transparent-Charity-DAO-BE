@@ -2,7 +2,7 @@
 import axios from "axios";
 import config from "../../config.js";
 import { FUNDRAISING_PROMPT } from "../prompts/fundraisingPrompt.js";
-import AiResult from "../models/AiResult.js";
+import AiResult from "../models/AIResult.js";
 
 export async function analyzeFundraisingProposal(
   project_id,
