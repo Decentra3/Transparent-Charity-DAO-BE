@@ -10,9 +10,10 @@ const options = {
       version: "1.0.0",
       description: "API documentation for Web3 Project",
     },
+    // Use relative URL so Swagger works across environments without CORS issues
     servers: [
       {
-        url: "http://localhost:4000/api", // base url API
+        url: "/api",
       },
     ],
   },
@@ -23,5 +24,5 @@ const specs = swaggerJSDoc(options);
 
 export const swaggerDocs = (app) => {
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(specs));
-  console.log("Swagger docs available at http://localhost:4000/api/docs");
+  console.log("Swagger docs available at /api/docs");
 };
