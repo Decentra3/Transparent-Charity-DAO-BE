@@ -38,7 +38,7 @@ export function subscribeEvents(contract, io) {
               : null;
           }
           console.log("projectId:", projectId);
-        } catch {
+        } catch (err) {
           logger.error("Error parsing DonationReceived event:", err);
         }
 
@@ -73,7 +73,9 @@ export function subscribeEvents(contract, io) {
               ? Number(decoded.args.projectId.toString())
               : null;
           }
-        } catch {}
+        } catch (err) {
+          logger.error("Error parsing  event:", err);
+        }
 
         return {
           donor,
@@ -245,7 +247,6 @@ export function subscribeEvents(contract, io) {
   // Đăng ký tất cả event
   events.forEach(({ name, handler, isDonate }) => {
     contract.on(name, async (...args) => {
-      const rawEvent = args[args.length - 1];
       try {
         const data = await handler(...args);
 

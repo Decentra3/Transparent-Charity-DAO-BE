@@ -6,30 +6,23 @@ import AiResult from "../models/AIResult.js";
 
 export async function analyzeFundraisingProposal(
   project_id,
-  description,
-  imageBase64
+  text,
+  imagesBase64 = []
 ) {
   try {
-    const body = {
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: FUNDRAISING_PROMPT },
-            { text: `User fundraising proposal: ${description}` },
-            ...(imageBase64
-              ? [
-                  {
-                    inline_data: {
-                      mime_type: "image/png",
-                      data: imageBase64,
-                    },
-                  },
-                ]
-              : []),
-          ],
+    const contentsParts = [
+      { text: FUNDRAISING_PROMPT },
+      { text: `User fundraising proposal: ${text}` },
+      ...imagesBase64.map((img) => ({
+        inline_data: {
+          mime_type: "image/png",
+          data: img,
         },
-      ],
+      })),
+    ];
+
+    const body = {
+      contents: [{ role: "user", parts: contentsParts }],
     };
 
     const response = await axios.post(config.gemini.url, body, {
@@ -37,28 +30,15 @@ export async function analyzeFundraisingProposal(
         "Content-Type": "application/json",
         "x-goog-api-key": config.gemini.apiKey,
       },
-      timeout: 15000,
+      timeout: 60000,
     });
 
-    // Lấy text trả về
     let resultText =
       response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    if (!resultText) {
-      return await AiResult.findOneAndUpdate(
-        { project_id: project_id.toLowerCase() },
-        {
-          project_id: project_id.toLowerCase(),
-          recommendation: "rejected",
-          fraud_score: 0,
-          key_reasons: ["Gemini returned empty or unexpected response"],
-          payload: { description, imageBase64 },
-        },
-        { upsert: true, new: true }
-      );
-    }
-
     resultText = resultText.trim();
+
+    // Loại bỏ ```json nếu có
     if (resultText.startsWith("```json")) {
       resultText = resultText
         .replace(/^```json\s*/, "")
@@ -66,34 +46,49 @@ export async function analyzeFundraisingProposal(
         .trim();
     }
 
-    let parsed;
+    let parsed = {};
     try {
       parsed = JSON.parse(resultText);
     } catch (e) {
+      // Nếu AI trả về không parse được, fallback
       parsed = {
         recommendation: "rejected",
         fraud_score: 0,
+        risk_level: "Low",
+        minimum_quorum: "50%",
         key_reasons: [resultText],
       };
     }
 
-    // chỉ giữ tối đa 3 key_reasons
+    // Chỉ giữ tối đa 3 lý do
     parsed.key_reasons = parsed.key_reasons?.slice(0, 3) || [];
 
-    // Lưu DB
+    // Nếu AI không trả minimum_quorum, tính dựa trên fraud_score
+    if (!parsed.minimum_quorum) {
+      if (parsed.fraud_score >= 90) parsed.minimum_quorum = "90%";
+      else if (parsed.fraud_score >= 75) parsed.minimum_quorum = "75%";
+      else if (parsed.fraud_score >= 50) parsed.minimum_quorum = "66%";
+      else parsed.minimum_quorum = "50%";
+    }
+
+    // Tách payload gốc ra riêng, chỉ lưu JSON chuẩn xuống DB
+    const saveData = {
+      project_id: project_id.toLowerCase(),
+      recommendation: parsed.recommendation,
+      fraud_score: parsed.fraud_score,
+      risk_level: parsed.risk_level || "Low",
+      minimum_quorum: parsed.minimum_quorum,
+      key_reasons: parsed.key_reasons,
+    };
+
     const saved = await AiResult.findOneAndUpdate(
       { project_id: project_id.toLowerCase() },
-      {
-        project_id: project_id.toLowerCase(),
-        recommendation: parsed.recommendation,
-        fraud_score: parsed.fraud_score,
-        key_reasons: parsed.key_reasons,
-        payload: { description, imageBase64 },
-      },
+      saveData,
       { upsert: true, new: true }
     );
 
-    return saved;
+    // Trả về **chỉ JSON chuẩn** (không trả payload cho frontend)
+    return saveData;
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -102,13 +97,16 @@ export async function analyzeFundraisingProposal(
     throw err;
   }
 }
+
 // Lấy AI result theo project_id
 export async function getAiResultByProjectId(project_id) {
   if (!project_id) throw new Error("project_id is required");
 
   const result = await AiResult.findOne({
     project_id: project_id.toLowerCase(),
-  }).select("_id project_id recommendation fraud_score key_reasons payload");
+  }).select(
+    "_id project_id recommendation fraud_score risk_level minimum_quorum key_reasons payload"
+  );
 
   return result;
 }

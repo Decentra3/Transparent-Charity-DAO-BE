@@ -1,14 +1,15 @@
 // middlewares/validateFundraisingInput.js
-import { isValidBase64 } from "../utils/validators.js";
 
 export function validateFundraisingInput(req, res, next) {
-  const { project_id, text, imageBase64 } = req.body;
+  const { project_id, text } = req.body;
+  const images = req.files?.images || [];
+  const docs = req.files?.docs || [];
 
-  // validate project_id
+  // Validate project_id
   if (
     !project_id ||
     typeof project_id !== "string" ||
-    project_id.trim().length === 0
+    project_id.trim() === ""
   ) {
     const err = new Error(
       "Invalid input: 'project_id' is required and must be a non-empty string"
@@ -17,7 +18,7 @@ export function validateFundraisingInput(req, res, next) {
     return next(err);
   }
 
-  // validate text
+  // Validate text
   if (!text || typeof text !== "string" || text.trim().length < 10) {
     const err = new Error(
       "Invalid input: 'text' must be a non-empty string with at least 10 characters"
@@ -26,14 +27,33 @@ export function validateFundraisingInput(req, res, next) {
     return next(err);
   }
 
-  // validate image (nếu có)
-  if (imageBase64) {
-    if (typeof imageBase64 !== "string" || !isValidBase64(imageBase64)) {
-      const err = new Error(
-        "Invalid input: 'imageBase64' must be a valid Base64 string"
-      );
-      err.statusCode = 400;
-      return next(err);
+  // Validate images upload (nếu có)
+  if (images.length > 0) {
+    for (const file of images) {
+      if (!file.mimetype.startsWith("image/")) {
+        const err = new Error(
+          `Invalid file type: '${file.originalname}' is not an image`
+        );
+        err.statusCode = 400;
+        return next(err);
+      }
+    }
+  }
+
+  // Validate docs upload (nếu có)
+  if (docs.length > 0) {
+    for (const file of docs) {
+      if (
+        file.mimetype !==
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" &&
+        !file.originalname.endsWith(".docx")
+      ) {
+        const err = new Error(
+          `Invalid file type: '${file.originalname}' is not a DOCX file`
+        );
+        err.statusCode = 400;
+        return next(err);
+      }
     }
   }
 

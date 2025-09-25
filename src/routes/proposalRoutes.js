@@ -1,12 +1,12 @@
 import express from "express";
 import {
   analyzeProposal,
+  parseProposal,
   getAiResult,
 } from "../controllers/analyzingController.js";
 import { validateFundraisingInput } from "../middlewares/validateFundraisingInput.js";
 
 const router = express.Router();
-
 /**
  * @swagger
  * tags:
@@ -23,7 +23,7 @@ const router = express.Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -35,10 +35,18 @@ const router = express.Router();
  *                 type: string
  *                 example: "Dự án nhằm cung cấp sách và giáo cụ cho học sinh vùng sâu vùng xa."
  *                 description: Nội dung mô tả dự án
- *               imageBase64:
- *                 type: string
- *                 example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
- *                 description: Hình ảnh dự án dưới dạng Base64
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Hình ảnh dự án, có thể gửi nhiều file
+ *               docs:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: File DOCX, có thể gửi nhiều file
  *             required:
  *               - project_id
  *               - text
@@ -50,16 +58,33 @@ const router = express.Router();
  *             schema:
  *               type: object
  *               properties:
- *                 score:
+ *                 recommendation:
+ *                   type: string
+ *                   example: "approved"
+ *                 fraud_score:
  *                   type: number
  *                   example: 85
- *                 feedback:
- *                   type: string
- *                   example: "Đề xuất rõ ràng, khả thi, nhưng cần chi tiết hơn về kế hoạch chi tiêu."
+ *                 key_reasons:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                     example: "Proposal is clear and feasible"
+ *                 payload:
+ *                   type: object
+ *                   properties:
+ *                     description:
+ *                       type: string
+ *                     images:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                         format: base64
+ *                     docs_text:
+ *                       type: string
+ *                       description: Nội dung trích xuất từ file DOCX
  *       400:
  *         description: Dữ liệu gửi lên không hợp lệ
  */
-router.post("/analyze", validateFundraisingInput, analyzeProposal);
 
 /**
  * @swagger
@@ -102,13 +127,23 @@ router.post("/analyze", validateFundraisingInput, analyzeProposal);
  *                   properties:
  *                     description:
  *                       type: string
- *                       example: "Dự án nhằm cung cấp sách và giáo cụ cho học sinh vùng sâu vùng xa."
- *                     imageBase64:
+ *                     images:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                         format: base64
+ *                     docs_text:
  *                       type: string
- *                       example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+ *                       description: Nội dung trích xuất từ file DOCX
  *       404:
  *         description: Kết quả AI không tồn tại
  */
+router.post(
+  "/analyze",
+  parseProposal,
+  validateFundraisingInput,
+  analyzeProposal
+);
 router.get("/result/:project_id", getAiResult);
 
 export default router;

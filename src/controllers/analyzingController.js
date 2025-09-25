@@ -1,4 +1,6 @@
 // controllers/aiController.js
+import multer from "multer";
+import { convertDocxToText } from "../utils/docxParser.js";
 import {
   analyzeFundraisingProposal,
   getAiResultByProjectId,
@@ -8,32 +10,46 @@ import {
  * POST /analyze/proposal
  * Phân tích proposal gây quỹ bằng AI
  */
-export async function analyzeProposal(req, res, next) {
-  try {
-    const { project_id, text, imageBase64 } = req.body;
+const storage = multer.memoryStorage(); // lưu file vào RAM, không cần ghi ổ cứng
+const upload = multer({ storage });
 
-    // Validate input
-    if (!project_id || !text) {
-      return res.status(400).json({
-        success: false,
-        message: "project_id and text are required",
-      });
+export const parseProposal = upload.fields([
+  { name: "images", maxCount: 5 },
+  { name: "docs", maxCount: 2 },
+]);
+/**
+ * POST /analyze/proposal
+ * Nhận project_id, text, nhiều ảnh và file DOCX
+ */
+export const analyzeProposal = [
+  async (req, res, next) => {
+    try {
+      const { project_id, text } = req.body;
+      // Chuyển các ảnh thành Base64
+      const imagesBase64 = (req.files.images || []).map((file) =>
+        file.buffer.toString("base64")
+      );
+
+      // Chuyển DOCX thành text
+      let docsText = "";
+      for (const doc of req.files.docs || []) {
+        const docText = await convertDocxToText(doc.buffer);
+        docsText += "\n" + docText;
+      }
+
+      // Gọi service phân tích
+      const result = await analyzeFundraisingProposal(
+        project_id.toString().trim(),
+        text.trim() + "\n" + docsText,
+        imagesBase64
+      );
+
+      return res.json({ success: true, data: result });
+    } catch (err) {
+      next(err);
     }
-
-    const result = await analyzeFundraisingProposal(
-      project_id.toString().trim(),
-      text.trim(),
-      imageBase64 ?? null
-    );
-
-    return res.json({
-      success: true,
-      data: result,
-    });
-  } catch (err) {
-    next(err);
-  }
-}
+  },
+];
 
 /**
  * GET /analyze/result/:project_id

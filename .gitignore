@@ -47,3 +47,13 @@ Thumbs.db
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+# ESLint
+# Thư mục/file cache mặc định của ESLint để tăng tốc độ linting
+.eslintcache
+
+# File .eslintignore (Nếu bạn đang sử dụng định dạng cũ thay vì ignorePatterns trong config)
+.eslintignore
+
+# Nếu bạn có file cấu hình tùy chỉnh cục bộ (ví dụ: dùng để thử nghiệm)
+.eslintrc.local.js
+.eslintrc.dev

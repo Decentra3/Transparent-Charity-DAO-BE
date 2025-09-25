@@ -5,7 +5,6 @@ import donateRoutes from "./routes/donateRoutes.js";
 import transactionRoutes from "./routes/transactionRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
 import cors from "cors";
-import config from "../config.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { swaggerDocs } from "./config/swagger.js";
 const app = express();
