@@ -6,19 +6,12 @@ import AiResult from "../models/AIResult.js";
 
 export async function analyzeFundraisingProposal(
   project_id,
-  text,
-  imagesBase64 = []
+  text
 ) {
   try {
     const contentsParts = [
       { text: FUNDRAISING_PROMPT },
       { text: `User fundraising proposal: ${text}` },
-      ...imagesBase64.map((img) => ({
-        inline_data: {
-          mime_type: "image/png",
-          data: img,
-        },
-      })),
     ];
 
     const body = {
@@ -105,7 +98,7 @@ export async function getAiResultByProjectId(project_id) {
   const result = await AiResult.findOne({
     project_id: project_id.toLowerCase(),
   }).select(
-    "_id project_id recommendation fraud_score risk_level minimum_quorum key_reasons payload"
+    "_id project_id recommendation fraud_score risk_level minimum_quorum key_reasons"
   );
 
   return result;

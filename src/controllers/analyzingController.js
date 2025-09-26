@@ -14,21 +14,16 @@ const storage = multer.memoryStorage(); // lưu file vào RAM, không cần ghi 
 const upload = multer({ storage });
 
 export const parseProposal = upload.fields([
-  { name: "images", maxCount: 5 },
   { name: "docs", maxCount: 2 },
 ]);
 /**
  * POST /analyze/proposal
- * Nhận project_id, text, nhiều ảnh và file DOCX
+ * Nhận project_id, text và file DOCX
  */
 export const analyzeProposal = [
   async (req, res, next) => {
     try {
       const { project_id, text } = req.body;
-      // Chuyển các ảnh thành Base64
-      const imagesBase64 = (req.files.images || []).map((file) =>
-        file.buffer.toString("base64")
-      );
 
       // Chuyển DOCX thành text
       let docsText = "";
@@ -37,11 +32,10 @@ export const analyzeProposal = [
         docsText += "\n" + docText;
       }
 
-      // Gọi service phân tích
+      // Gọi service phân tích (không truyền images)
       const result = await analyzeFundraisingProposal(
         project_id.toString().trim(),
-        text.trim() + "\n" + docsText,
-        imagesBase64
+        text.trim() + "\n" + docsText
       );
 
       return res.json({ success: true, data: result });

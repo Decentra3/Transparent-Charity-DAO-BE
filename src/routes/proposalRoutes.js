@@ -35,18 +35,12 @@ const router = express.Router();
  *                 type: string
  *                 example: "Dự án nhằm cung cấp sách và giáo cụ cho học sinh vùng sâu vùng xa."
  *                 description: Nội dung mô tả dự án
- *               images:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
- *                 description: Hình ảnh dự án, có thể gửi nhiều file
  *               docs:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: binary
- *                 description: File DOCX, có thể gửi nhiều file
+ *                 description: File DOCX, có thể gửi tối đa 2 file
  *             required:
  *               - project_id
  *               - text
@@ -58,30 +52,32 @@ const router = express.Router();
  *             schema:
  *               type: object
  *               properties:
- *                 recommendation:
- *                   type: string
- *                   example: "approved"
- *                 fraud_score:
- *                   type: number
- *                   example: 85
- *                 key_reasons:
- *                   type: array
- *                   items:
- *                     type: string
- *                     example: "Proposal is clear and feasible"
- *                 payload:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
  *                   type: object
  *                   properties:
- *                     description:
+ *                     project_id:
  *                       type: string
- *                     images:
+ *                       example: "64f5e2abc1234567890abcd"
+ *                     recommendation:
+ *                       type: string
+ *                       example: "approved"
+ *                     fraud_score:
+ *                       type: number
+ *                       example: 85
+ *                     risk_level:
+ *                       type: string
+ *                       example: "Low"
+ *                     minimum_quorum:
+ *                       type: string
+ *                       example: "50%"
+ *                     key_reasons:
  *                       type: array
  *                       items:
  *                         type: string
- *                         format: base64
- *                     docs_text:
- *                       type: string
- *                       description: Nội dung trích xuất từ file DOCX
+ *                         example: "Proposal is clear and feasible"
  *       400:
  *         description: Dữ liệu gửi lên không hợp lệ
  */
@@ -107,34 +103,33 @@ const router = express.Router();
  *             schema:
  *               type: object
  *               properties:
- *                 _id:
- *                   type: string
- *                 project_id:
- *                   type: string
- *                 recommendation:
- *                   type: string
- *                   example: "approved"
- *                 fraud_score:
- *                   type: number
- *                   example: 85
- *                 key_reasons:
- *                   type: array
- *                   items:
- *                     type: string
- *                     example: "Proposal is clear and feasible"
- *                 payload:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
  *                   type: object
  *                   properties:
- *                     description:
+ *                     _id:
  *                       type: string
- *                     images:
+ *                     project_id:
+ *                       type: string
+ *                     recommendation:
+ *                       type: string
+ *                       example: "approved"
+ *                     fraud_score:
+ *                       type: number
+ *                       example: 85
+ *                     risk_level:
+ *                       type: string
+ *                       example: "Low"
+ *                     minimum_quorum:
+ *                       type: string
+ *                       example: "50%"
+ *                     key_reasons:
  *                       type: array
  *                       items:
  *                         type: string
- *                         format: base64
- *                     docs_text:
- *                       type: string
- *                       description: Nội dung trích xuất từ file DOCX
+ *                         example: "Proposal is clear and feasible"
  *       404:
  *         description: Kết quả AI không tồn tại
  */
